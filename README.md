@@ -20,5 +20,7 @@ Instruction to use:
 
 - Clone this repo
 - Create folder named "layers"
+- Create folders for each layer inside "layers" folder (eg. layers/layer1, layers/layer2) 
+- Add videos inside layer folders (eg. layers/layer1/video.mp4)
 - Type **yarn** in terminal
 - Type **yarn start** in terminal
