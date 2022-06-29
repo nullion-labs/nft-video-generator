@@ -2,31 +2,50 @@ const fs = require("fs");
 var path = require("path");
 const { exec } = require("child_process");
 
-const layerFolders = {};
-const destinationFolder = "./export";
-let resultNumber = 0;
+const verbose = false; // set to true if you wanna see fmpeg logs
 
+const destinationFolder = "./export"; // destination folder where to store exports
+const resultPrefix = "result-"; // result prefix (default: result-) 0.mp4 will be appended to it
+const bitRate = 30; // ffmpeg libx264 constant rate 0-50 (0 being as original)
+
+let resultNumber = 0; // result counter
+const layerFolders = {}; // map to find folders where each item is stored
+
+// create destination folder if it doesnt exist
 if (!fs.existsSync(destinationFolder)) {
   fs.mkdirSync(destinationFolder);
 }
 
 async function init() {
-  const arrays = [];
+  // used to store each layer as new array
+  const layersArray = [];
+
+  // get all folders inside layers folder
   let layersFolder = fs.readdirSync("layers");
+
+  // reverse or sort by descending order z to a
   layersFolder = layersFolder.reverse();
+
+  // go through each folder inside layers and assign its files to array
   layersFolder.forEach((layerFolderName) => {
     const layerFiles = fs.readdirSync(`layers/${layerFolderName}`);
     layerFiles.forEach((x) => {
       layerFolders[x] = layerFolderName;
     });
-    arrays.push(layerFiles);
+    layersArray.push(layerFiles);
   });
-  const combinedLayers = combineArraysRecursively(arrays);
+
+  // combine all possible combinations
+  const combinedLayers = combineArraysRecursively(layersArray);
+
+  // for each combination do ffmpeg process and save exported video as mp4
   for (let i = 0; i < combinedLayers.length; i++) {
     await process(combinedLayers[i]);
   }
 }
 init();
+
+// where magic happens
 async function process(layers) {
   let paths = "";
   let filters = "";
@@ -46,19 +65,23 @@ async function process(layers) {
     }
   }
   await new Promise((resolve, reject) => {
-    console.log(`executing video-${resultNumber}`);
+    console.log(`executing video #${resultNumber}`);
     const ffmpeg = exec(
-      `ffmpeg${paths} -filter_complex "${filters}" -c:v libx264 -crf 30 -shortest -y result-${resultNumber++}.mp4`
+      `ffmpeg${paths} -filter_complex "${filters}" -c:v libx264 -crf ${bitRate} -shortest -y "${destinationFolder}/${resultPrefix}${resultNumber++}.mp4"`
     );
     ffmpeg.stderr.on("data", function (data) {
-      //   console.log("[ffmpeg]:", data);
+      if (verbose) {
+        console.log("[ffmpeg]:", data);
+      }
     });
     ffmpeg.on("close", (code) => {
-      console.log("[ffmpeg]: closed with code:" + code);
+      if (verbose) {
+        console.log("[ffmpeg]: closed with code:" + code);
+      }
       if (code == 1) {
         reject();
       } else {
-        console.log(`finished video-${resultNumber}`);
+        console.log(`finished video #${resultNumber}`);
         resolve();
       }
     });
