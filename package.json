@@ -1,0 +1,23 @@
+{
+  "name": "nft-video-generator",
+  "version": "1.0.0",
+  "description": "Combine multiple layers of video creating all possible combinations",
+  "author": "Vukasin Pesic",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "nullion",
+    "nft",
+    "nft art",
+    "nft art generator",
+    "nft video art generator",
+    "nft video",
+    "nft video generator",
+    "ffmpeg",
+    "nodejs",
+    "combine videos with ffmpeg"
+  ]
+}
